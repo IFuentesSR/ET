@@ -9,7 +9,7 @@
 # Data was messed, and a previous processing was required. It was obtained in the meteolological station of Narrabri West Post Office, at 212 masl, in the NSW State (Latitude: 30.34 degrees, Longitude: 149.76 degrees).
 # 
 
-# In[21]:
+# In[1]:
 
 get_ipython().magic('matplotlib inline')
 import numpy as np
@@ -32,7 +32,7 @@ import pylab as pylab
 # where:
 # ETo reference evapotranspiration [mm day<sup>-1</sup>], Rn net radiation at the crop surface [MJ m<sup>-2</sup> day<sup>-1</sup>], G soil heat flux density [MJ m<sup>-2</sup> day<sup>-1</sup>], T mean daily air temperature at 2 m height [°C], u<sub>2</sub> wind speed at 2 m height [m s<sup>-1</sup>], e<sub>s</sub> saturation vapour pressure [kPa], e<sub>a</sub> actual vapour pressure [kPa], e<sub>s</sub>-e<sub>a</sub> saturation vapour pressure deficit [kPa], Δ slope vapour pressure curve [kPa °C<sup>-1</sup>], γ psychrometric constant [kPa °C<sup>-1</sup>].
 
-# In[3]:
+# In[2]:
 
 df=pd.read_csv(r'C:\Users\ifue3702\Downloads\Climate Data Narrabri\IDCJCM0037_053030 (2).csv',
               delimiter=',',
@@ -53,7 +53,7 @@ data=pd.read_csv(r'C:\Users\ifue3702\Downloads\Climate Data Narrabri\prueba.csv'
 
 # Initial data to consider is the altitude of the meteorological station, which is located 212 m.a.s.l. Also, an albedo of 0.23 was considered when doing the calculus of some variables, which implies a grass cover.
 
-# In[4]:
+# In[3]:
 
 masl=212
 albedo=0.23
@@ -65,7 +65,7 @@ albedo=0.23
 # 
 # where T<sub>max</sub> and T<sub>min</sub> are the mean maxim and minimum temperatures of the dataframe for each month.
 
-# In[5]:
+# In[4]:
 
 #list(data.columns.values)
 #Add mean temperature = (Tmax+tmin)/2 in Celcius degrees
@@ -74,7 +74,7 @@ data['Mean_T']=((data['Mean maximum temperature (Degrees C) for years 1962 to 20
 
 # Mean wind speed was assumed measured at a high of 2 m , calculated through the mean of wind speeds at 9 am and 3 pm, and converted to m s<sup>-1</sup>:
 
-# In[6]:
+# In[5]:
 
 #add mean wind speed in m per second, supossedly at 2 m heigth 
 data['Mean_wind_speed_']=((data['Mean 9am wind speed (km/h) for years 1962 to 2002 ']+data['Mean 3pm wind speed (km/h) for years 1962 to 2002 '])/2)*1000/3600
@@ -88,7 +88,7 @@ data['Mean_wind_speed_']=((data['Mean 9am wind speed (km/h) for years 1962 to 20
 # 
 # $e_s = \frac{e^o(T_{max}) + e^o(T_{min})}{2}$
 
-# In[7]:
+# In[6]:
 
 data['e0_min']=0.6108*(2.71828**((17.27*data['Mean 9am temperature (Degrees C) for years 1962 to 2002 '])/(data['Mean 9am temperature (Degrees C) for years 1962 to 2002 ']+237.3)))
 data['e0_max']=0.6108*2.71828**((17.27*data['Mean 3pm temperature (Degrees C) for years 1962 to 2002 '])/(data['Mean 3pm temperature (Degrees C) for years 1962 to 2002 ']+237.3))
@@ -102,7 +102,7 @@ data['es']=(data['e0_min']+data['e0_max'])/2
 # The actual vapour pressure was then averaged and the vapour presure deficit was calculated by substracting e<sub>a</sub> to e<sub>s</sub>.
 #     
 
-# In[8]:
+# In[7]:
 
 data['ea_min']=(data['Mean 9am relative humidity (%) for years 1962 to 2002 ']*data['e0_min'])/100
 data['ea_max']=(data['Mean 3pm relative humidity (%) for years 1962 to 2002 ']*data['e0_max'])/100
@@ -116,7 +116,7 @@ data['es_ea']=(data['es']-data['ea'])
 # 
 # where T is the mean temperature in celsius degrees.
 
-# In[9]:
+# In[8]:
 
 data['delta']=(4098*(0.6108*np.exp((17.27*data['Mean_T'])/(data['Mean_T']+237.3))))/(data['Mean_T']+237.3)**2
 
@@ -129,7 +129,7 @@ data['delta']=(4098*(0.6108*np.exp((17.27*data['Mean_T'])/(data['Mean_T']+237.3)
 # 
 # $\gamma = 0.665 * 10^{-3} P$
 
-# In[10]:
+# In[9]:
 
 data['pressure']=101.3*((293-0.0065*masl)/293)**5.26
 data['psi']=data['pressure']*0.665*10**(-3)
@@ -139,7 +139,7 @@ data['psi']=data['pressure']*0.665*10**(-3)
 # 
 # $R_{ns} = (1 - \alpha)R_s$
 
-# In[11]:
+# In[10]:
 
 data['Rns']=(1-albedo)*data['Mean daily solar exposure (MJ/(m*m)) for years 1990 to 2016 ']
 
@@ -150,7 +150,7 @@ data['Rns']=(1-albedo)*data['Mean daily solar exposure (MJ/(m*m)) for years 1990
 # 
 # where <sup>k</sup>Rs corresponds to an adjustement coefficient from 0.16 to 0.19, being 0.16 a value used when land mass dominates and air masses are not strongly influenced by large water bodies, and 0.19 is associated to coastal locations, where air masses are influenced by the ocean. In this case, a <sup>k</sup>Rs value of 0.165 was used due to the location of Narrabri.
 
-# In[12]:
+# In[11]:
 
 data['Ra']=data['Mean daily solar exposure (MJ/(m*m)) for years 1990 to 2016 ']/(0.165*(data['Mean maximum temperature (Degrees C) for years 1962 to 2002 ']-data['Mean minimum temperature (Degrees C) for years 1962 to 2002 '])**0.5)
 
@@ -159,7 +159,7 @@ data['Ra']=data['Mean daily solar exposure (MJ/(m*m)) for years 1990 to 2016 ']/
 # 
 # $R_{so} = (0.75+2*10^{-0.5}z)R_a$   
 
-# In[13]:
+# In[12]:
 
 data['Rso']=(0.75+2*0.00001*212)*data['Ra']
 
@@ -168,14 +168,14 @@ data['Rso']=(0.75+2*0.00001*212)*data['Ra']
 # 
 # $R_{nl}=\sigma[\frac{T_{max,K}^4+T_{min,K}^4}{2}](0.34-0.14\sqrt{e_a})(1.35\frac{R_s}{R_{so}}-0.35)$
 
-# In[14]:
+# In[13]:
 
 data['Rnl']=4.903*10**(-9)*(((data['Mean maximum temperature (Degrees C) for years 1962 to 2002 ']+273.16)**4+(data['Mean minimum temperature (Degrees C) for years 1962 to 2002 ']+273.16)**4)/2)*(0.34-0.14*data['ea']**0.5)*(1.35*(data['Mean daily solar exposure (MJ/(m*m)) for years 1990 to 2016 ']/data['Rso'])-0.35)
 
 
 # Net Radiation was then calculated as the substraction of the incoming net shortwave radiation (R<sub>ns</sub>) and the net longwave radiation (R<sub>nl</sub>).
 
-# In[15]:
+# In[14]:
 
 data['Rn']=data['Rns']-data['Rnl']
 
@@ -184,7 +184,7 @@ data['Rn']=data['Rns']-data['Rnl']
 # 
 # $G_{month,i} = 0.07(T_{month,i+1}-T_{month,i-1})$
 
-# In[17]:
+# In[15]:
 
 #def obtaining_G ():
 #for row in data['Rns']:
@@ -211,7 +211,7 @@ data.set_value(11, ['G'], (data['Rns'][0]-data['Rns'][10])*0.07)
 
 # Finally evaporation (mm d<sup>-1</sup>) was calculated by the FAO Pennman Monteith equation, and a plot was created to show the evaporation values of each month:
 
-# In[23]:
+# In[16]:
 
 data['ET0']=(0.408*data['delta']*(data['Rn']-data['G'])+data['psi']*900/(data['Mean_T']+273)*data['Mean_wind_speed_']*data['es_ea'])/(data['delta']+data['psi']*(1+0.34*data['Mean_wind_speed_']))
 clean=data[0:13]#delete not used data
@@ -259,7 +259,7 @@ plt.show()
 # 
 # 
 
-# In[24]:
+# In[17]:
 
 #Calculating evaporation from open water surfaces
 
@@ -284,7 +284,7 @@ A=[clean['Rn'][0]/x for x in Lamb] #transforms Rn from MJ m-2 to mm d-1 by divid
 # 
 # $\gamma = 0.0016286\frac{P}{\lambda}$
 
-# In[26]:
+# In[18]:
 
 psi_water=[] #create empy list of psi
 def psi (Lambda): #function to calculate Psi depending on Lambda
@@ -299,7 +299,7 @@ psi(Lamb) #Run the function and fill the list with calculated values of Psi
 # $F^1_p = \frac{\Delta}{\Delta+\gamma}$
 # 
 
-# In[27]:
+# In[19]:
 
 FPuno_jan=[] #create list for F1 for January
 def FP1_jan (psi_water): #define function to calculate F1 depending on psi
@@ -318,7 +318,7 @@ FP1_jan(psi_water) #fill the list with the calculated values by runing the funct
 # where u<sub>2</sub> corresponds to the mean wind speed at 2 m.
 # 
 
-# In[28]:
+# In[20]:
 
 from __future__ import division #bring zip to the script
 #obtaining Fp2, consider that maths in lists cannot be executes so easily
@@ -335,7 +335,7 @@ water_evap_january=[x+y for x,y in zip(water_evap_j, water_evap_jan)]
 
 # The same calculus was done for each month (probably there must be a more efficient way to do this).
 
-# In[29]:
+# In[21]:
 
 #february
 
@@ -618,7 +618,7 @@ water_evap_dec=[x+y for x,y in zip(water_evap_d, water_evap_de)]
 
 # When water temperature is equal to the air temperature, the results would be:
 
-# In[12]:
+# In[22]:
 
 clean['Lambda']=2.501-0.002361*clean['Mean_T']
 clean['psi_lamda']=0.0016286*clean['pressure']/clean['Lambda']
@@ -632,7 +632,7 @@ clean['Eva_water']
 # ### Plot T<sup>o</sup> v/s Evaporation
 # A plot was created showing how the water temperature would affect the evaporation rate for each month. This relationship is linear.
 
-# In[31]:
+# In[23]:
 
 
 from collections import OrderedDict #in order to maintain the columns order (doesn't worked)
@@ -692,14 +692,14 @@ plt.show()'''
 
 # ### Basic statistics of the data
 
-# In[33]:
+# In[35]:
 
 water_evap.describe() #returns a summary of the dataframe
 
 
 # ### The range of water evaporation each month is:
 
-# In[34]:
+# In[36]:
 
 for c in water_evap:
     print('%s range is: %r' % (c, water_evap[c].max()-water_evap[c].min()))
@@ -707,12 +707,75 @@ for c in water_evap:
 #returns the range of each month
 
 
-# In[35]:
-
-list(clean.columns.values) #returns the column names in clean datadrame
-
-
 # In[ ]:
 
 
+
+
+# ## Total water losses per month
+# 
+# To obtain total water losses the infiltration values were used from a different script in which the calculus of infiltration values were obtained for saturation conditions, considering a column of ponded water of one meter and assuming that the water table is 10 m below the surface. 
+# Besides, in a first instance, the evaporation used was the mean value of evaporation from open water sources from 0 to 30<sup>o</sup> Celsius. 
+
+# In[91]:
+
+from Infiltration import inf_list, text
+inf_dictionary=dict(zip(text, inf_list))#creates a dictionary from two lists 
+
+Water_evap_mean=np.mean(water_evap)#mean of evaporation values obtained 
+water_evap_dict=dict(Water_evap_mean)#create dictionary with the mean evaporation
+
+Losses=pd.Series(water_evap_dict)#create a panda Series 
+losses_new=pd.DataFrame(Losses)#convert the series to Dataframe
+losses_new.columns=['Evaporation']#add column to dataframe
+
+           
+for c in inf_dictionary:
+    losses_new[c]= inf_dictionary[c]+losses_new['Evaporation']
+    
+losses_new=losses_new.reindex(index=['January','February','March','April','May','June','July','August','September','October','November','December'])
+    
+xep=np.array(range(1,13)) #define a range of values to stick at the x (strings)
+plt.xticks(xep, losses_new.index) #sticks string to numbers in the x axis to plot, 
+
+for i in losses_new[2:16]:
+    plt.plot(xep,losses_new[i])
+
+plt.grid(which='both')
+pylab.ylim(10,80)#I use this limit just in order to appreciate the differences because the upper values are too high
+plt.ylabel('Water Losses (mm/d)')
+plt.show()
+
+
+# ## Water losses per month and soil texture depending on water temperature
+# 
+# By crossing the infiltration depending on the soil texture (15 series) and the evaporation of each month depending on the water temperature (12 months), its possible to obtain the water losses depending on the temperature in each soil and in each month, which give us 180 series (12 x 15).
+# In each case, as in the previous evaluation of the evaporation depending on the water temperature, the series behave linearly.
+
+# In[181]:
+
+#reordering the columns 
+water_evap_reordered=water_evap.reindex(columns=['January','February','March','April','May','June','July','August','September','October','November','December'])
+aver=water_evap_reordered
+
+
+for a in water_evap_reordered:
+    for b in inf_dictionary:
+        aver[b+'_'+a]=inf_dictionary[b]+water_evap_reordered[a]
+yeahhhhh=aver.ix[:,12:]
+for c in yeahhhhh:
+    plt.scatter(yeahhhhh.index, yeahhhhh[c])
+plt.xlabel('Celsius degrees')
+plt.ylabel('Water losses (mm/d)')
+    #pylab.ylim(30,40)
+
+
+# ## Water losses v/s surface
+# 
+# Finally, other objective ivolves the assessing of how water losses behave depending on the surface that water occupy. In this case both parameters, infiltration and evaporation should increase linearly with the increase of the area, considering that 1 mm day<sup>-1</sup> is equal to 10 m<sup>3</sup>/ha<sup>-1</sup> d<sup>-1</sup>.   
+# Again, a column of water of 1 m high and the mean daily evaporation were applied.
+
+# In[182]:
+
+losses_new
 
